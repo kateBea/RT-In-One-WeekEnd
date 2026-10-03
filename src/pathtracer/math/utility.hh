@@ -23,10 +23,11 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
+#include <random>
 #include <limits>
 #include <numbers>
 #include <numeric>
+#include <iostream>
 
 namespace pathtracer::math {
 
@@ -39,6 +40,18 @@ namespace pathtracer::math {
 
     [[nodiscard]] inline auto to_radians(double degrees) -> double {
         return degrees * pi / 180.0;
+    }
+
+    [[nodiscard]] inline auto random_double() -> double {
+        static std::mt19937 generator{};
+        static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+        return distribution(generator);
+    }
+
+    [[nodiscard]] inline auto random_double(double min, double max) -> double {
+        // Returns a random real in [min,max).
+        return min + (max-min)*random_double();
     }
 
 } // namespace pathtracer::math

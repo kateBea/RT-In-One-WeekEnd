@@ -39,6 +39,12 @@ namespace pathtracer::math {
         [[nodiscard]] bool contains(double x) const { return _min <= x && x <= _max; }
         [[nodiscard]] bool surrounds(double x) const { return _min < x && x < _max; }
     
+        [[nodiscard]] auto clamp(double x) const -> double {
+            if (x < _min) return _min;
+            if (x > _max) return _max;
+
+            return x;
+        }
     private:
         double _min{}; 
         double _max{};

@@ -24,6 +24,8 @@
 
 #include <cstdint>
 
+#include <pathtracer/math/interval.hh>
+
 namespace pathtracer::math {
 
     class vec3 final {
@@ -31,9 +33,17 @@ namespace pathtracer::math {
         vec3() = default;
         vec3(double x, double y, double z) : _x(x), _y(y), _z(z) {}
 
-        auto x() const -> double { return _x; }
-        auto y() const -> double { return _y; }
-        auto z() const -> double { return _z; }
+        [[nodiscard]] auto x() const -> double { return _x; }
+        [[nodiscard]] auto y() const -> double { return _y; }
+        [[nodiscard]] auto z() const -> double { return _z; }
+
+        [[nodiscard]] auto r() const -> double { return _r; }
+        [[nodiscard]] auto g() const -> double { return _g; }
+        [[nodiscard]] auto b() const -> double { return _b; }
+
+        [[nodiscard]] auto s() const -> double { return _s; }
+        [[nodiscard]] auto t() const -> double { return _t; }
+        [[nodiscard]] auto p() const -> double { return _p; }
 
         [[nodiscard]] auto length() const -> double { return std::sqrt(length_squared()); }
         [[nodiscard]] auto length_squared() const -> double { return _x * _x + _y * _y + _z * _z; }
@@ -52,6 +62,11 @@ namespace pathtracer::math {
 
         [[nodiscard]] auto operator==(const vec3& other) const -> bool { return _x == other._x && _y == other._y && _z == other._z; }
         [[nodiscard]] auto operator!=(const vec3& other) const -> bool { return !(*this == other); }
+
+        auto operator+=(const vec3& other) -> vec3& { _x += other._x; _y += other._y; _z += other._z; return *this; }
+        auto operator-=(const vec3& other) -> vec3& { _x -= other._x; _y -= other._y; _z -= other._z; return *this; }
+        auto operator*=(double scalar) -> vec3& { _x *= scalar; _y *= scalar; _z *= scalar; return *this; }
+        auto operator/=(double scalar) -> vec3& { _x /= scalar; _y /= scalar; _z /= scalar; return *this; }
 
         [[nodiscard]] auto operator[](std::size_t index) -> double& { return index == 0 ? _x : (index == 1 ? _y : _z); }
         [[nodiscard]] auto operator[](std::size_t index) const -> double { return index == 0 ? _x : (index == 1 ? _y : _z); }
@@ -76,9 +91,11 @@ namespace pathtracer::math {
 
         auto write( std::ostream& out ) const -> void {
             // Translate the [0,1] component values to the byte range [0,255].
-            std::int32_t rbyte{ static_cast<std::int32_t>(255.999 * _r) };
-            std::int32_t gbyte{ static_cast<std::int32_t>(255.999 * _g) };
-            std::int32_t bbyte{ static_cast<std::int32_t>(255.999 * _b) };
+            static const interval intensity(0.000, 0.999);
+
+            std::int32_t rbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_r)) };
+            std::int32_t gbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_g)) };
+            std::int32_t bbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_b)) };
 
             // Write out the pixel color components.
             out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
@@ -87,8 +104,8 @@ namespace pathtracer::math {
     private:
         // This defines 3 member variables but it is as if they had different names
         // So I can access x as r or s, y as g or t and so on.
-        union { double _x, _r, s; };
-		union { double _y, _g, t; };
-        union { double _z, _b, p; };
+        union { double _x, _r, _s; };
+		union { double _y, _g, _t; };
+        union { double _z, _b, _p; };
     };
 }
