@@ -46,6 +46,7 @@ auto main(int argc, char** argv) -> int {
     cam.set_aspect_ratio(16.0 / 9.0);
     cam.set_image_width(1280);
     cam.set_samples_per_pixel(100);
+    cam.set_max_depth(50);
 
     cam.render(world);
 

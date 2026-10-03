@@ -60,11 +60,11 @@ namespace pathtracer::scene {
 
                     for (std::int32_t sample{}; sample < _samples_per_pixel; sample++) {
                         math::ray r{ get_ray(i, j) };
-                        pixel_color += ray_color(r, world);
+                         pixel_color += ray_color(r, _max_depth, world);
                     }
 
                     pixel_color *= _pixel_samples_scale;
-                    pixel_color.write(std::cout);
+                    math::write(std::cout, pixel_color);
                 }
             }
 
@@ -81,6 +81,10 @@ namespace pathtracer::scene {
 
         auto set_samples_per_pixel(std::int32_t samples) -> void {
             _samples_per_pixel = samples;
+        }
+
+        auto set_max_depth(std::int32_t depth) -> void {
+            _max_depth = depth;
         }
 
     private:
@@ -132,12 +136,21 @@ namespace pathtracer::scene {
             return math::vec3(math::random_double() - 0.5, math::random_double() - 0.5, 0.0);
         }
 
-        [[nodiscard]] auto ray_color(const math::ray& r, const math::hittable& world) const -> math::color {
+        [[nodiscard]] auto ray_color(const math::ray& r, std::int32_t depth, const math::hittable& world) const -> math::color {
+            // If we've exceeded the ray bounce limit, no more light is gathered.
+            if (depth <= 0) {
+                return math::color(0, 0, 0);
+            }
+
             math::hit_record rec{};
 
-            if (world.hit(r, math::interval(0.0, math::infinity), rec)) {
-                math::vec3 direction{ math::vec3::random_on_hemisphere(rec.normal()) };
-                return 0.5 * ray_color(math::ray(rec.point(), direction), world);
+            // Fix shadow acne by setting the minimum t value 
+            // to a small positive number (0.001) instead of 0.
+            if (world.hit(r, math::interval(0.001, math::infinity), rec)) {
+                // Lambdea function to generate a random unit vector
+                // in the hemisphere of the hit point's normal.
+                math::vec3 direction = rec.normal() + math::vec3::random_unit_vector();
+                return 0.1 * ray_color(math::ray(rec.point(), direction), depth-1, world);
             }
 
             math::vec3 unit_direction{ r.direction().normalized() };
@@ -158,5 +171,7 @@ namespace pathtracer::scene {
 
             double _pixel_samples_scale{};  // Color scale factor for a sum of pixel samples
             std::int32_t _samples_per_pixel{ 10 };   // Count of random samples for each pixel
+
+            std::int32_t _max_depth{ 10 };   // Maximum number of ray bounces into scene
     };
 }

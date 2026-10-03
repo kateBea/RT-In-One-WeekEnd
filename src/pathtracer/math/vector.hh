@@ -89,18 +89,6 @@ namespace pathtracer::math {
 
         [[nodiscard]] static auto dot(const vec3& v, const vec3& other) -> double { return v._x * other._x + v._y * other._y + v._z * other._z; }
 
-        auto write( std::ostream& out ) const -> void {
-            // Translate the [0,1] component values to the byte range [0,255].
-            static const interval intensity(0.000, 0.999);
-
-            std::int32_t rbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_r)) };
-            std::int32_t gbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_g)) };
-            std::int32_t bbyte{ static_cast<std::int32_t>(255.999 * intensity.clamp(_b)) };
-
-            // Write out the pixel color components.
-            out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
-        }
-
         [[nodiscard]] static auto random() -> vec3 {
             return vec3(random_double(), random_double(), random_double());
         }
