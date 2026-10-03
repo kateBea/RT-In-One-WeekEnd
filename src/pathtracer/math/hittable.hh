@@ -26,6 +26,10 @@
 #include <pathtracer/math/point.hh>
 #include <pathtracer/math/vector.hh>
 
+namespace pathtracer::renderer {
+    class material;
+}
+
 namespace pathtracer::math {
     
     class hit_record {
@@ -34,6 +38,9 @@ namespace pathtracer::math {
         [[nodiscard]] auto point() const -> point3 { return _point; }
         [[nodiscard]] auto normal() const -> vec3 { return _normal; }
         [[nodiscard]] auto t() const -> double { return _t; }
+
+        [[nodiscard]] auto front_face() const -> bool { return _front_face; }
+        [[nodiscard]] auto material() const -> std::shared_ptr<renderer::material> { return _material; }
 
         auto set_point(const point3& p) -> void { _point = p; }
         auto set_normal(const vec3& n) -> void { _normal = n; }
@@ -48,10 +55,16 @@ namespace pathtracer::math {
             _normal = _front_face ? outward_normal : -outward_normal;
         }
 
+        auto set_material(std::shared_ptr<renderer::material> mat) -> void { 
+            _material = mat; 
+        }
+
     private:
         point3 _point;
         vec3 _normal;
         double _t;
+
+        std::shared_ptr<renderer::material> _material{};
 
         bool _front_face;
     };

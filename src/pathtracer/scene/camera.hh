@@ -149,8 +149,13 @@ namespace pathtracer::scene {
             if (world.hit(r, math::interval(0.001, math::infinity), rec)) {
                 // Lambdea function to generate a random unit vector
                 // in the hemisphere of the hit point's normal.
-                math::vec3 direction = rec.normal() + math::vec3::random_unit_vector();
-                return 0.1 * ray_color(math::ray(rec.point(), direction), depth-1, world);
+                math::ray scattered;
+                math::color attenuation;
+                if (rec.material()->scatter(r, rec, attenuation, scattered)) {
+                    return attenuation * ray_color(scattered, depth-1, world);
+                }
+
+                return math::color(0,0,0);
             }
 
             math::vec3 unit_direction{ r.direction().normalized() };

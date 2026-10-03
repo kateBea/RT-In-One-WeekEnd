@@ -80,6 +80,24 @@ namespace pathtracer::math {
             );
         }
 
+        inline static auto reflect(const vec3& v, const vec3& n) -> vec3 {
+            return v - 2*dot(v,n)*n;
+        }
+
+        inline static auto refract(const vec3& uv, const vec3& n, double etai_over_etat) -> vec3 {
+            auto cos_theta{ std::fmin(dot(-uv, n), 1.0) };
+            vec3 r_out_perp{ etai_over_etat * (uv + cos_theta*n) };
+            vec3 r_out_parallel{ -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n };
+
+            return r_out_perp + r_out_parallel;
+        }
+
+        [[nodiscard]] auto near_zero() const -> bool {
+            // Return true if the vector is close to zero in all dimensions.
+            auto s{ 1e-8 };
+            return (std::fabs(_x) < s) && (std::fabs(_y) < s) && (std::fabs(_z) < s);
+        }
+
         [[nodiscard]] auto normalized() const -> vec3 { return *this / length(); }
 
         [[nodiscard]] static auto normalized( const vec3& v ) -> vec3 { return v / v.length(); }

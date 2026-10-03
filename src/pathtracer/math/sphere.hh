@@ -30,18 +30,20 @@
 #include <pathtracer/math/interval.hh>
 #include <pathtracer/math/hittable.hh>
 
+#include <pathtracer/renderer/material.hh>
+
 namespace pathtracer::math {
 
     class sphere : public hittable {
     public:
-        sphere(const point3& center, double radius) 
-            : center(center), radius(std::fmax(0,radius)) {}
+        sphere(const point3& center, double radius, std::shared_ptr<renderer::material> mat)
+            : _center(center), _radius(std::fmax(0,radius)), _material(mat) {}
 
-        [[nodiscard]] auto hit(const ray& r, interval ray_t, hit_record& rec) const -> bool override {
-            vec3 oc = center - r.origin();
+        [[nodiscard]] auto hit(const math::ray& r, math::interval ray_t, math::hit_record& rec) const -> bool override {
+            math::vec3 oc = _center - r.origin();
             auto a = r.direction().length_squared();
-            auto h = vec3::dot(r.direction(), oc);
-            auto c = oc.length_squared() - radius*radius;
+            auto h = math::vec3::dot(r.direction(), oc);
+            auto c = oc.length_squared() - _radius*_radius;
 
             auto discriminant = h*h - a*c;
             if (discriminant < 0) {
@@ -62,16 +64,19 @@ namespace pathtracer::math {
 
             rec.set_t(root);
             rec.set_point(r.at(rec.t()));
-            rec.set_normal((rec.point() - center) / radius);
+            rec.set_normal((rec.point() - _center) / _radius);
 
-            vec3 outward_normal = (rec.point() - center) / radius;
+            vec3 outward_normal = (rec.point() - _center) / _radius;
             rec.set_face_normal(r, outward_normal);
+            rec.set_material(_material);
 
             return true;
         }
 
     private:
-        point3 center;
-        double radius;
+        point3 _center;
+        double _radius;
+
+        std::shared_ptr<renderer::material> _material{};
     };
 }

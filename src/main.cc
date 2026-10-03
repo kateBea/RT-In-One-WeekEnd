@@ -29,6 +29,9 @@
 
 #include <pathtracer/scene/camera.hh>
 
+#include <pathtracer/math/sphere.hh>
+#include <pathtracer/renderer/material.hh>
+
 using namespace pathtracer;
 using namespace pathtracer::math;
 using namespace pathtracer::scene;
@@ -38,8 +41,17 @@ auto main(int argc, char** argv) -> int {
 
     hittable_list world{};
 
-    world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
+    auto material_ground = std::make_shared<renderer::lambertian>(color(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<renderer::lambertian>(color(0.2, 0.4, 0.35));
+    auto material_left   = std::make_shared<renderer::dielectric>(1.50);
+    auto material_bubble = std::make_shared<renderer::dielectric>(1.00 / 1.50);
+    auto material_right  = std::make_shared<renderer::metal>(color(0.8, 0.6, 0.2), 1.0);
+
+    world.add(std::make_shared<math::sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(std::make_shared<math::sphere>(point3( 0.0,    0.0, -2.2),   0.5, material_center));
+    world.add(std::make_shared<math::sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(std::make_shared<math::sphere>(point3( -1.0,   0.0, -1.0),   0.4, material_bubble));
+    world.add(std::make_shared<math::sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     camera cam{};
 
