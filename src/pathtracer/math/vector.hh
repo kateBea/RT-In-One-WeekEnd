@@ -54,9 +54,6 @@ namespace pathtracer::math {
         [[nodiscard]] auto operator+(double scalar) const -> vec3 { return vec3(_x + scalar, _y + scalar, _z + scalar); }
         [[nodiscard]] auto operator+(const vec3& other) const -> vec3 { return vec3(_x + other._x, _y + other._y, _z + other._z); }
 
-        [[nodiscard]] auto operator*(double scalar) const -> vec3 { return vec3(_x * scalar, _y * scalar, _z * scalar); }
-        [[nodiscard]] auto operator*(const vec3& other) const -> vec3 { return vec3(_x * other._x, _y * other._y, _z * other._z); }
-        
         [[nodiscard]] auto operator/(double scalar) const -> vec3 { return vec3(_x / scalar, _y / scalar, _z / scalar); }
         [[nodiscard]] auto operator/(const vec3& other) const -> vec3 { return vec3(_x / other._x, _y / other._y, _z / other._z); }
 
@@ -104,6 +101,7 @@ namespace pathtracer::math {
 
         [[nodiscard]] friend auto operator*(double scalar, const vec3& v) -> vec3 { return vec3(v._x * scalar, v._y * scalar, v._z * scalar); }
         [[nodiscard]] friend auto operator*( const vec3& v, double scalar) -> vec3 { return vec3(v._x * scalar, v._y * scalar, v._z * scalar); }
+        [[nodiscard]] friend auto operator*( const vec3& v, const vec3& other) -> vec3 { return vec3(v._x * other._x, v._y * other._y, v._z * other._z); }
 
         [[nodiscard]] static auto dot(const vec3& v, const vec3& other) -> double { return v._x * other._x + v._y * other._y + v._z * other._z; }
 
@@ -125,6 +123,15 @@ namespace pathtracer::math {
             }
 
             return vec3(1,0,0); // Should never reach here
+        }
+
+        inline static auto random_in_unit_disk() -> vec3 {
+            while (true) {
+                auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+                if (p.length_squared() < 1) {
+                    return p;
+                }
+            }
         }
 
         [[nodiscard]] inline static auto random_on_hemisphere(const vec3& normal) -> vec3 {

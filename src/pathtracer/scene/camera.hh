@@ -103,6 +103,14 @@ namespace pathtracer::scene {
             _vup = vup;
         }
 
+        auto set_defocus_angle(double defocus_angle) -> void {
+            _defocus_angle = defocus_angle;
+        }
+
+        auto set_focus_dist(double focus_dist) -> void {
+            _focus_dist = focus_dist;
+        }
+
     private:
         auto initialize() -> void {
             _image_height = int(image_width / aspect_ratio);
@@ -117,7 +125,7 @@ namespace pathtracer::scene {
 
             auto theta = math::to_radians(_vfov);
             auto h = std::tan(theta/2);
-            auto viewport_height = 2 * h * focal_length;
+            auto viewport_height = 2 * h * _focus_dist;
             auto viewport_width = viewport_height * (double(image_width)/_image_height);
 
             // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
@@ -134,8 +142,13 @@ namespace pathtracer::scene {
             _pixel_delta_v = viewport_v / _image_height;
 
             // Calculate the location of the upper left pixel.
-            auto viewport_upper_left = _center - (focal_length * _w) - viewport_u/2 - viewport_v/2;
+            auto viewport_upper_left = _center - (_focus_dist * _w) - viewport_u/2 - viewport_v/2;
             _pixel00_loc = viewport_upper_left + 0.5 * (_pixel_delta_u + _pixel_delta_v);
+
+             // Calculate the camera defocus disk basis vectors.
+            auto defocus_radius{ _focus_dist * std::tan(math::to_radians(_defocus_angle / 2)) };
+            _defocus_disk_u = _u * defocus_radius;
+            _defocus_disk_v = _v * defocus_radius;
         }
 
         [[nodiscard]] auto get_ray(int i, int j) const -> math::ray {
@@ -148,11 +161,18 @@ namespace pathtracer::scene {
                             + ((i + offset.x()) * _pixel_delta_u)
                             + ((j + offset.y()) * _pixel_delta_v);
 
-            auto ray_origin{ _center };
+            auto ray_origin = (_defocus_angle <= 0) ? _center : defocus_disk_sample();
             auto ray_direction{ pixel_sample - ray_origin };
 
             return math::ray(ray_origin, ray_direction);
         }
+
+        inline auto defocus_disk_sample() const -> math::point3 {
+            // Returns a random point in the camera defocus disk.
+            auto p = math::vec3::random_in_unit_disk();
+            return _center + (p[0] * _defocus_disk_u) + (p[1] * _defocus_disk_v);
+        }
+
 
         [[nodiscard]] auto sample_square() const -> math::vec3 {
             // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
@@ -208,5 +228,11 @@ namespace pathtracer::scene {
             math::vec3   _vup      = math::vec3(0,1,0);     // Camera-relative "up" direction
 
             math::vec3   _u{}, _v{}, _w{};              // Camera frame basis vectors
+
+            double _defocus_angle{};  // Variation angle of rays through each pixel
+            double _focus_dist{ 10 };    // Distance from camera lookfrom point to plane of perfect focus
+
+            math::vec3   _defocus_disk_u{};       // Defocus disk horizontal radius
+            math::vec3   _defocus_disk_v{};       // Defocus disk vertical radius
     };
 }
