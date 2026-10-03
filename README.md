@@ -7,4 +7,4 @@ for me to learn this gorgeous tech that I'd like to implement at somepoint in Mi
 Main learning resource is the [Ray Tracing in one Weekend](https://raytracing.github.io/) set of articles, after finishing those
 the plan is to move to hardware accelerated with Vulkan Raytracing and DXR as Mikoto also supports both.
 
-![Current progress](resources/img1.png)
+![Current progress](resources/img2.png)

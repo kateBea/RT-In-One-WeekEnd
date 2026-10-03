@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include <pathtracer/core/io.hh>
+#include <pathtracer/core/timer.hh>
 #include <pathtracer/core/logger.hh>
 
 #include <pathtracer/math/ray.hh>
@@ -44,6 +45,8 @@ namespace pathtracer::scene {
     public:
 
         auto render(const math::hittable& world) -> void {
+            START_SCOPED_TIMER("Camera::render");
+
             initialize();
 
             std::cout << "P3\n" << image_width << ' ' << _image_height << "\n255\n";
@@ -133,13 +136,14 @@ namespace pathtracer::scene {
             math::hit_record rec{};
 
             if (world.hit(r, math::interval(0.0, math::infinity), rec)) {
-                auto normal = rec.normal().normalized();
-                return 0.5 * (normal + math::vec3(1.0, 1.0, 1.0));
+                math::vec3 direction{ math::vec3::random_on_hemisphere(rec.normal()) };
+                return 0.5 * ray_color(math::ray(rec.point(), direction), world);
             }
 
-            auto unit_direction = r.direction().normalized();
-            auto t = 0.5 * (unit_direction.y() + 1.0);
-            return (1.0 - t) * math::color(1.0, 1.0, 1.0) + t * math::color(0.5, 0.7, 1.0);
+            math::vec3 unit_direction{ r.direction().normalized() };
+            auto a{ 0.5*(unit_direction.y() + 1.0) };
+
+            return (1.0-a)*math::color(1.0, 1.0, 1.0) + a*math::color(0.5, 0.7, 1.0);
         }
 
         private:

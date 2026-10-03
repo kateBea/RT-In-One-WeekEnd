@@ -101,6 +101,38 @@ namespace pathtracer::math {
             out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
         }
 
+        [[nodiscard]] static auto random() -> vec3 {
+            return vec3(random_double(), random_double(), random_double());
+        }
+
+        [[nodiscard]] static auto random(double min, double max) -> vec3 {
+            return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+        }
+
+        [[nodiscard]] inline static auto random_unit_vector() -> vec3 {
+            while (true) {
+                auto p{ vec3::random(-1,1) };
+                auto lensq{ p.length_squared() };
+                if (1e-160 < lensq && lensq <= 1.0) {
+                    return p / std::sqrt(lensq);
+                }
+            }
+
+            return vec3(1,0,0); // Should never reach here
+        }
+
+        [[nodiscard]] inline static auto random_on_hemisphere(const vec3& normal) -> vec3 {
+            vec3 on_unit_sphere{ random_unit_vector() };
+
+            if (dot(on_unit_sphere, normal) > 0.0) {
+                // In the same hemisphere as the normal
+                return on_unit_sphere;
+            }
+            else {
+                return -on_unit_sphere;
+            }
+        }
+
     private:
         // This defines 3 member variables but it is as if they had different names
         // So I can access x as r or s, y as g or t and so on.
