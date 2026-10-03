@@ -20,35 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <memory>
-#include <cstdint>
-#include <iostream>
+#pragma once
 
-#include <pathtracer/core/io.hh>
-#include <pathtracer/core/logger.hh>
+#include <pathtracer/math/utility.hh>
 
-#include <pathtracer/scene/camera.hh>
+namespace pathtracer::math {
 
-using namespace pathtracer;
-using namespace pathtracer::math;
-using namespace pathtracer::scene;
+    class interval {
+    public:
+    
+        interval() : _min(+infinity), _max(-infinity) {} // Default interval is empty
+        interval(double min, double max) : _min(min), _max(max) {}
 
-auto main(int argc, char** argv) -> int {
-    pathtracer::core::io::redirect_stdout("image.ppm");
+        [[nodiscard]] double min() const { return _min; }
+        [[nodiscard]] double max() const { return _max; }
+        
+        [[nodiscard]] double size() const { return _max - _min; }
+        [[nodiscard]] bool contains(double x) const { return _min <= x && x <= _max; }
+        [[nodiscard]] bool surrounds(double x) const { return _min < x && x < _max; }
+    
+    private:
+        double _min{}; 
+        double _max{};
 
-    hittable_list world{};
+        static const interval empty; 
+        static const interval universe;
+    };
 
-    world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
-
-    camera cam{};
-
-    cam.set_aspect_ratio(16.0 / 9.0);
-    cam.set_image_width(1280);
-
-    cam.render(world);
-
-    LOG_INFO("Done.\n");
-
-    return 0;
+    const interval interval::empty    = interval(+infinity, -infinity);
+    const interval interval::universe = interval(-infinity, +infinity);
 }

@@ -67,7 +67,12 @@ namespace pathtracer::math {
 
         [[nodiscard]] auto normalized() const -> vec3 { return *this / length(); }
 
-        [[nodiscard]] friend auto operator*(double scalar, const vec3& v) -> vec3 { return v * scalar; }
+        [[nodiscard]] static auto normalized( const vec3& v ) -> vec3 { return v / v.length(); }
+
+        [[nodiscard]] friend auto operator*(double scalar, const vec3& v) -> vec3 { return vec3(v._x * scalar, v._y * scalar, v._z * scalar); }
+        [[nodiscard]] friend auto operator*( const vec3& v, double scalar) -> vec3 { return vec3(v._x * scalar, v._y * scalar, v._z * scalar); }
+
+        [[nodiscard]] static auto dot(const vec3& v, const vec3& other) -> double { return v._x * other._x + v._y * other._y + v._z * other._z; }
 
         auto write( std::ostream& out ) const -> void {
             // Translate the [0,1] component values to the byte range [0,255].

@@ -1,0 +1,125 @@
+// MIT License
+//
+// Copyright (c) 2026 ケイト
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#pragma once
+
+#include <memory>
+#include <cstdint>
+#include <iostream>
+
+#include <pathtracer/core/io.hh>
+#include <pathtracer/core/logger.hh>
+
+#include <pathtracer/math/ray.hh>
+#include <pathtracer/math/color.hh>
+#include <pathtracer/math/point.hh>
+#include <pathtracer/math/vector.hh>
+#include <pathtracer/math/sphere.hh>
+#include <pathtracer/math/utility.hh>
+#include <pathtracer/math/interval.hh>
+#include <pathtracer/math/hittable.hh>
+#include <pathtracer/math/hittable_list.hh>
+
+namespace pathtracer::scene {
+    class camera {
+    public:
+
+        auto render(const math::hittable& world) -> void{
+            initialize();
+
+            std::cout << "P3\n" << image_width << ' ' << _image_height << "\n255\n";
+
+            for (int j = 0; j < _image_height; j++) {
+                // Debug log progress to console
+                LOG_TRACE("Scanlines remaining: {}", (_image_height - j) );
+
+                for (int i = 0; i < image_width; i++) {
+                    auto pixel_center = _pixel00_loc + (i * _pixel_delta_u) + (j * _pixel_delta_v);
+                    auto ray_direction = pixel_center - _center;
+                    math::ray r(_center, ray_direction);
+
+                    math::color pixel_color = ray_color(r, world);
+                    pixel_color.write(std::cout);
+                }
+            }
+
+            LOG_TRACE("Done.");
+        }
+
+        auto set_aspect_ratio(double ratio) -> void {
+            aspect_ratio = ratio;
+        }
+
+        auto set_image_width(std::int32_t width) -> void {
+            image_width = width;
+        }
+
+    private:
+        auto initialize() -> void {
+            _image_height = int(image_width / aspect_ratio);
+            _image_height = (_image_height < 1) ? 1 : _image_height;
+
+            _center = math::point3(0, 0, 0);
+
+            // Determine viewport dimensions.
+            auto focal_length = 1.0;
+            auto viewport_height = 2.0;
+            auto viewport_width = viewport_height * (double(image_width)/_image_height);
+
+            // Calculate the vectors across the horizontal and down the vertical viewport edges.
+            auto viewport_u = math::vec3(viewport_width, 0, 0);
+            auto viewport_v = math::vec3(0, -viewport_height, 0);
+
+            // Calculate the horizontal and vertical delta vectors from pixel to pixel.
+            _pixel_delta_u = viewport_u / image_width;
+            _pixel_delta_v = viewport_v / _image_height;
+
+            // Calculate the location of the upper left pixel.
+            auto viewport_upper_left =
+                _center - math::vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+            _pixel00_loc = viewport_upper_left + 0.5 * (_pixel_delta_u + _pixel_delta_v);
+        }
+
+        [[nodiscard]] auto ray_color(const math::ray& r, const math::hittable& world) const -> math::color {
+            math::hit_record rec{};
+
+            if (world.hit(r, math::interval(0.0, math::infinity), rec)) {
+                auto normal = rec.normal().normalized();
+                return 0.5 * (normal + math::vec3(1.0, 1.0, 1.0));
+            }
+
+            auto unit_direction = r.direction().normalized();
+            auto t = 0.5 * (unit_direction.y() + 1.0);
+            return (1.0 - t) * math::color(1.0, 1.0, 1.0) + t * math::color(0.5, 0.7, 1.0);
+        }
+
+        private:
+            double aspect_ratio{ 1.0 };  // Ratio of image width over height
+            std::int32_t    image_width{ 100 };  // Rendered image width in pixel count
+            std::int32_t    _image_height{};   // Rendered image height
+
+            math::point3 _center{};         // Camera center
+            math::point3 _pixel00_loc{};    // Location of pixel 0, 0
+            math::vec3   _pixel_delta_u{};  // Offset to pixel to the right
+            math::vec3   _pixel_delta_v{};  // Offset to pixel below
+    };
+}

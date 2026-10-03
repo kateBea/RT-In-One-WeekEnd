@@ -20,35 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <memory>
-#include <cstdint>
+#pragma once
+
+#include <cmath>
 #include <iostream>
+#include <limits>
+#include <numbers>
+#include <numeric>
 
-#include <pathtracer/core/io.hh>
-#include <pathtracer/core/logger.hh>
+namespace pathtracer::math {
 
-#include <pathtracer/scene/camera.hh>
+    // Constants
 
-using namespace pathtracer;
-using namespace pathtracer::math;
-using namespace pathtracer::scene;
+    const double pi{ std::numbers::pi_v<double> };
+    const double infinity{ std::numeric_limits<double>::infinity() };
 
-auto main(int argc, char** argv) -> int {
-    pathtracer::core::io::redirect_stdout("image.ppm");
+    // Utility Functions
 
-    hittable_list world{};
+    [[nodiscard]] inline auto to_radians(double degrees) -> double {
+        return degrees * pi / 180.0;
+    }
 
-    world.add(std::make_shared<sphere>(point3(0,0,-1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0,-100.5,-1), 100));
-
-    camera cam{};
-
-    cam.set_aspect_ratio(16.0 / 9.0);
-    cam.set_image_width(1280);
-
-    cam.render(world);
-
-    LOG_INFO("Done.\n");
-
-    return 0;
-}
+} // namespace pathtracer::math
