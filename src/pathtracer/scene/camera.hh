@@ -87,6 +87,22 @@ namespace pathtracer::scene {
             _max_depth = depth;
         }
 
+        auto set_field_of_view(double vfov_degrees) -> void {
+            _vfov = vfov_degrees;
+        }
+
+        auto set_lookfrom(const math::point3& lookfrom) -> void {
+            _lookfrom = lookfrom;
+        }
+
+        auto set_lookat(const math::point3& lookat) -> void {
+            _lookat = lookat;
+        }
+
+        auto set_vup(const math::vec3& vup) -> void {
+            _vup = vup;
+        }
+
     private:
         auto initialize() -> void {
             _image_height = int(image_width / aspect_ratio);
@@ -94,24 +110,31 @@ namespace pathtracer::scene {
 
             _pixel_samples_scale = 1.0 / _samples_per_pixel;
 
-            _center = math::point3(0, 0, 0);
+            _center = _lookfrom;
 
             // Determine viewport dimensions.
-            auto focal_length = 1.0;
-            auto viewport_height = 2.0;
+             auto focal_length = (_lookfrom - _lookat).length();
+
+            auto theta = math::to_radians(_vfov);
+            auto h = std::tan(theta/2);
+            auto viewport_height = 2 * h * focal_length;
             auto viewport_width = viewport_height * (double(image_width)/_image_height);
 
+            // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+            _w = math::vec3::normalized(_lookfrom - _lookat);
+            _u = math::vec3::normalized(_vup.cross(_w));
+            _v = _w.cross(_u);
+
             // Calculate the vectors across the horizontal and down the vertical viewport edges.
-            auto viewport_u = math::vec3(viewport_width, 0, 0);
-            auto viewport_v = math::vec3(0, -viewport_height, 0);
+            math::vec3 viewport_u = viewport_width * _u;    // Vector across viewport horizontal edge
+            math::vec3 viewport_v = viewport_height * -_v;  // Vector down viewport vertical edge
 
             // Calculate the horizontal and vertical delta vectors from pixel to pixel.
             _pixel_delta_u = viewport_u / image_width;
             _pixel_delta_v = viewport_v / _image_height;
 
             // Calculate the location of the upper left pixel.
-            auto viewport_upper_left =
-                _center - math::vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+            auto viewport_upper_left = _center - (focal_length * _w) - viewport_u/2 - viewport_v/2;
             _pixel00_loc = viewport_upper_left + 0.5 * (_pixel_delta_u + _pixel_delta_v);
         }
 
@@ -178,5 +201,12 @@ namespace pathtracer::scene {
             std::int32_t _samples_per_pixel{ 10 };   // Count of random samples for each pixel
 
             std::int32_t _max_depth{ 10 };   // Maximum number of ray bounces into scene
+
+            double _vfov{ 90 };  // Vertical view angle (field of view) in degrees
+            math::point3 _lookfrom = math::point3(0,0,0);   // Point camera is looking from
+            math::point3 _lookat   = math::point3(0,0,-1);  // Point camera is looking at
+            math::vec3   _vup      = math::vec3(0,1,0);     // Camera-relative "up" direction
+
+            math::vec3   _u{}, _v{}, _w{};              // Camera frame basis vectors
     };
 }
