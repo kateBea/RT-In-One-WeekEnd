@@ -77,11 +77,11 @@ namespace pathtracer::math {
             );
         }
 
-        inline static auto reflect(const vec3& v, const vec3& n) -> vec3 {
+        static auto reflect(const vec3& v, const vec3& n) -> vec3 {
             return v - 2*dot(v,n)*n;
         }
 
-        inline static auto refract(const vec3& uv, const vec3& n, double etai_over_etat) -> vec3 {
+        static auto refract(const vec3& uv, const vec3& n, double etai_over_etat) -> vec3 {
             auto cos_theta{ std::fmin(dot(-uv, n), 1.0) };
             vec3 r_out_perp{ etai_over_etat * (uv + cos_theta*n) };
             vec3 r_out_parallel{ -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n };
@@ -113,7 +113,7 @@ namespace pathtracer::math {
             return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
         }
 
-        [[nodiscard]] inline static auto random_unit_vector() -> vec3 {
+        [[nodiscard]] static auto random_unit_vector() -> vec3 {
             while (true) {
                 auto p{ vec3::random(-1,1) };
                 auto lensq{ p.length_squared() };
@@ -125,7 +125,7 @@ namespace pathtracer::math {
             return vec3(1,0,0); // Should never reach here
         }
 
-        inline static auto random_in_unit_disk() -> vec3 {
+        static auto random_in_unit_disk() -> vec3 {
             while (true) {
                 auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
                 if (p.length_squared() < 1) {
@@ -134,7 +134,7 @@ namespace pathtracer::math {
             }
         }
 
-        [[nodiscard]] inline static auto random_on_hemisphere(const vec3& normal) -> vec3 {
+        [[nodiscard]] static auto random_on_hemisphere(const vec3& normal) -> vec3 {
             vec3 on_unit_sphere{ random_unit_vector() };
 
             if (dot(on_unit_sphere, normal) > 0.0) {

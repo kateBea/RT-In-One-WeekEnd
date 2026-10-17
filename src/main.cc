@@ -85,7 +85,7 @@ auto main(int argc, char** argv) -> int {
 
     cam.set_aspect_ratio(16.0 / 9.0);
     cam.set_image_width(1280);
-    cam.set_samples_per_pixel(500);
+    cam.set_samples_per_pixel(10);
     cam.set_max_depth(50);
 
     cam.set_field_of_view(20.0);
