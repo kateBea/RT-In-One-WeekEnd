@@ -8,6 +8,8 @@ the plan is to move to hardware accelerated with Vulkan Raytracing and DXR as Mi
 
 ![Current progress](resources/img4.png)
 
+This image took 31 minuts to render on my Ryzen 7 9800x 3D
+
 ## Source
 - Title (series): “Ray Tracing in One Weekend Series”
 - Title (book): “Ray Tracing in One Weekend”
