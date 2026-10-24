@@ -3,12 +3,11 @@ Raytracing in one weekend cause I hate myself.
 
 This is a repository created to learn Raytracing by writting a CPU pathtracer.
 
-Main learning resource is the [Ray Tracing in one Weekend](https://raytracing.github.io/) set of articles, after finishing those
-the plan is to move to hardware accelerated with Vulkan Raytracing and DXR as Mikoto also supports both.
+Main learning resource is the [Ray Tracing in one Weekend](https://raytracing.github.io/) set of articles.
 
 ![Current progress](resources/img4.png)
 
-This image took 31 minuts to render on my Ryzen 7 9800x 3D.
+This image took 31 minuts to render on my Ryzen 7 9800x 3D with 100 SPP at 720p.
 
 ## Source
 - Title (series): “Ray Tracing in One Weekend Series”
